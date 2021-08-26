@@ -8,7 +8,7 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene {
+class GameScene: SKScene , SKPhysicsContactDelegate { //SKPhysicsContactDelegate kontak algılamak için
 
     
     //var bird2 = SKSpriteNode()
@@ -23,6 +23,17 @@ class GameScene: SKScene {
     var boxesMass = CGFloat(0.2)
     var gameStarted = false
     var originalPasition = CGPoint(x: 0, y: 0)
+    
+    var score = 0
+    var scoreLabel = SKLabelNode()
+    
+    enum ColliderType : UInt32{
+        case bee = 1
+        case box = 2 // 1 2 4 8 16 32 şeklinde numaralandırılabilir
+        
+    }
+    
+    
     
     
     override func didMove(to view: SKView) { // oyun başladığında
@@ -39,6 +50,7 @@ class GameScene: SKScene {
         // Physics Body
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: frame) // gameScene yi bir çerçeve halinde dünya olarak oluşturur
         //self.scene?.scaleMode = .aspectFit
+        self.physicsWorld.contactDelegate = self // temasları algılamak için
         
         //Bee
         bee = childNode(withName: "redbee") as! SKSpriteNode // redbee gameScene deverdiğim isim resim dosyasının adı değil
@@ -48,6 +60,13 @@ class GameScene: SKScene {
         bee.physicsBody?.isDynamic = true // fiziksel etkilerden etkilenecek
         bee.physicsBody?.mass = 0.25 // kg cinsinde kütle verdik
         originalPasition = bee.position
+        
+        // çarpışmaları tespit için gerekli bu 3 satır tanımlama
+        bee.physicsBody?.contactTestBitMask = ColliderType.bee.rawValue
+        bee.physicsBody?.categoryBitMask = ColliderType.bee.rawValue
+        bee.physicsBody?.collisionBitMask = ColliderType.box.rawValue // box ile çarpışmalar için eğer box yerine bee yaparsak nereye çarparsak çarpalım sayar
+        
+        
         //Box
         let boxTexture = SKTexture(imageNamed: "bluebrick")
         let size = CGSize(width: 100, height: 100)
@@ -59,12 +78,17 @@ class GameScene: SKScene {
         box1.physicsBody?.allowsRotation = true //kutu dönme şeklinde de hareket edebilsin
         box1.physicsBody?.mass = boxesMass
         
+        box1.physicsBody?.collisionBitMask = ColliderType.bee.rawValue
+        
         box2 = childNode(withName: "box2") as! SKSpriteNode
         box2.physicsBody = SKPhysicsBody(rectangleOf: size)
         box2.physicsBody?.isDynamic = true
         box2.physicsBody?.affectedByGravity = true
         box2.physicsBody?.allowsRotation = true //kutu dönme şeklinde de hareket edebilsin
         box2.physicsBody?.mass = boxesMass
+        
+        box2.physicsBody?.collisionBitMask = ColliderType.bee.rawValue
+
         
         box3 = childNode(withName: "box3") as! SKSpriteNode
         box3.physicsBody = SKPhysicsBody(rectangleOf: size)
@@ -73,12 +97,18 @@ class GameScene: SKScene {
         box3.physicsBody?.allowsRotation = true //kutu dönme şeklinde de hareket edebilsin
         box3.physicsBody?.mass = boxesMass
         
+        box3.physicsBody?.collisionBitMask = ColliderType.bee.rawValue
+
+        
         box4 = childNode(withName: "box4") as! SKSpriteNode
         box4.physicsBody = SKPhysicsBody(rectangleOf: size)
         box4.physicsBody?.isDynamic = true
         box4.physicsBody?.affectedByGravity = true
         box4.physicsBody?.allowsRotation = true //kutu dönme şeklinde de hareket edebilsin
         box4.physicsBody?.mass = boxesMass
+        
+        box4.physicsBody?.collisionBitMask = ColliderType.bee.rawValue
+
         
         box5 = childNode(withName: "box5") as! SKSpriteNode
         box5.physicsBody = SKPhysicsBody(rectangleOf: size)
@@ -87,6 +117,16 @@ class GameScene: SKScene {
         box5.physicsBody?.allowsRotation = true //kutu dönme şeklinde de hareket edebilsin
         box5.physicsBody?.mass = boxesMass
         
+        box5.physicsBody?.collisionBitMask = ColliderType.bee.rawValue
+
+        //label
+        
+        scoreLabel.fontName = "Helvetica"
+        scoreLabel.fontSize = 50
+        scoreLabel.text = "0"
+        scoreLabel.position = CGPoint(x: 0, y: self.frame.height / 4)
+        scoreLabel.zPosition = 2
+        self.addChild(scoreLabel)
      
         
 
@@ -118,6 +158,20 @@ class GameScene: SKScene {
         
         moveBee(touches: touches)
     }
+    
+    func didBegin(_ contact: SKPhysicsContact) { // birbirine değme olayı olduğunda çalışır
+        
+        if contact.bodyA.collisionBitMask == ColliderType.bee.rawValue || contact.bodyB.collisionBitMask == ColliderType.bee.rawValue{ // arı bir yere çarptığında
+            
+            print("contact")
+            
+            score += 1
+            scoreLabel.text = String(score)
+            
+        }
+        
+    }
+    
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) { // ekrana dokunma bitti
         
@@ -172,6 +226,9 @@ class GameScene: SKScene {
             bee.physicsBody?.affectedByGravity = false
             gameStarted = false
             bee.position = originalPasition
+            
+            score = 0
+            scoreLabel.text = "0"
             
         }
     }
