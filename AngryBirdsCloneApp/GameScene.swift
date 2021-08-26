@@ -14,11 +14,14 @@ class GameScene: SKScene , SKPhysicsContactDelegate { //SKPhysicsContactDelegate
     //var bird2 = SKSpriteNode()
     
     var bee = SKSpriteNode()
+    
     var box1 = SKSpriteNode()
     var box2 = SKSpriteNode()
     var box3 = SKSpriteNode()
     var box4 = SKSpriteNode()
     var box5 = SKSpriteNode()
+    
+    var boxes : [SKSpriteNode] = []
     
     var boxesMass = CGFloat(0.2)
     var gameStarted = false
@@ -71,6 +74,26 @@ class GameScene: SKScene , SKPhysicsContactDelegate { //SKPhysicsContactDelegate
         let boxTexture = SKTexture(imageNamed: "bluebrick")
         let size = CGSize(width: 100, height: 100)
         
+        boxes.append(box1)
+        boxes.append(box2)
+        boxes.append(box3)
+        boxes.append(box4)
+        boxes.append(box5)
+        
+        for (index , var box) in boxes.enumerated() {
+            print(index)
+            box = childNode(withName: "box\(index+1)") as! SKSpriteNode
+            box.physicsBody = SKPhysicsBody(rectangleOf: size)
+            box.physicsBody?.isDynamic = true
+            box.physicsBody?.affectedByGravity = true
+            box.physicsBody?.allowsRotation = true //kutu dönme şeklinde de hareket edebilsin
+            box.physicsBody?.mass = boxesMass
+            
+            box.physicsBody?.collisionBitMask = ColliderType.bee.rawValue
+            
+        }
+        
+        /* for a dönüştürüldü yukarıda
         box1 = childNode(withName: "box1") as! SKSpriteNode
         box1.physicsBody = SKPhysicsBody(rectangleOf: size)
         box1.physicsBody?.isDynamic = true
@@ -118,7 +141,7 @@ class GameScene: SKScene , SKPhysicsContactDelegate { //SKPhysicsContactDelegate
         box5.physicsBody?.mass = boxesMass
         
         box5.physicsBody?.collisionBitMask = ColliderType.bee.rawValue
-
+*/
         //label
         
         scoreLabel.fontName = "Helvetica"
@@ -188,7 +211,9 @@ class GameScene: SKScene , SKPhysicsContactDelegate { //SKPhysicsContactDelegate
                         if let sprite = node as? SKSpriteNode{ // herhangi bir sk sprite nodun üstündeyse içeri girer
                             
                             if sprite == bee { // buraya girdiyse bir sprite node a dokunmuştur ve bu bizim arımız mı diye kontrol ederiz
-                                
+                                score = 0
+                                scoreLabel.text = "0"
+
                                 var dx = -(touchLocation.x - originalPasition.x)*2
                                 var dy = -(touchLocation.y - originalPasition.y)*2
                                 
@@ -227,9 +252,7 @@ class GameScene: SKScene , SKPhysicsContactDelegate { //SKPhysicsContactDelegate
             gameStarted = false
             bee.position = originalPasition
             
-            score = 0
-            scoreLabel.text = "0"
-            
+                        
         }
     }
     
